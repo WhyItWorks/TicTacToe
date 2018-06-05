@@ -1,0 +1,64 @@
+body {
+    background-color: #EDEDED;
+}
+
+.bg-wild_blue_yonder {
+    background-color: #8688B8;
+}
+.bg-blue-violet{
+    background-color: #6356B8;
+}
+
+.title_box {
+    height: 40px !important;
+}
+
+.celda{
+    height: 100px;
+}
+
+.reload{
+    background-image: url("../img/reload.png");
+    width: 30px;
+    height: 30px;
+}
+
+html {
+    font-size: 0.6rem;
+}
+
+@media screen and (min-width: 576px) {
+    html {
+        font-size: 0.8rem;
+    }
+    .title_box {
+        height: 60px !important;
+    }
+}
+
+@media screen and (min-width: 768px) {
+    html {
+        font-size: 1rem;
+    }
+    .title_box {
+        height: 70px !important;
+    }
+}
+
+@media screen and (min-width: 992px) {
+    html {
+        font-size: 1.2rem;
+    }
+    .title_box {
+        height: 80px !important;
+    }
+}
+
+@media screen and (min-width: 1200px) {
+    html {
+        font-size: 1.4rem;
+    }
+    .title_box {
+        height: 90px !important;
+    }
+}

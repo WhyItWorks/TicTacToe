@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <link rel="stylesheet" href="public/css/bootstrap.min.css">
+    <link rel="stylesheet" href="public/css/main.css">
+
+    <title>Tic Tac Toe</title>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row mt-5">
+            <div class="offset-1 col-3 ">
+                <div class="title_box bg-wild_blue_yonder d-flex align-items-center justify-content-center ">
+                    <p class="lead text-white my-auto">Jugador: &nbsp; </p>
+                    <p id="marca" class="lead text-white my-auto"> x </p>
+                </div>
+            </div>
+            <div class="offset-3 col-5">
+                <div class="row">
+                    <a class="badge badge-light" href="">
+                        <img class="reload" src="public/img/reload.png" alt="" srcset="">
+                        <p class="my-auto ml-2">¿Desea reiniciar?</p>
+                    </a>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="row pt-5">
+
+            <div class="offset-2 col-8 ">
+                <div class="d-flex justify-content-center align-items-center">
+
+                    <div class="col-4 text-center p-0">
+                        <div class="celda border border-dark border-top-0 border-left-0">
+                            <p id="A1" class="my-auto h1">x</p>
+                        </div>
+                        <div class="celda border border-dark border-left-0">
+                            <p id="A2" class="my-auto h1">x</p>
+                        </div>
+                        <div class="celda border border-dark border-bottom-0 border-left-0">
+                            <p id="A3" class="my-auto h1">x</p>
+                        </div>
+                    </div>
+                    <div class="col-4 text-center p-0">
+                        <div class="celda border border-dark border-top-0">
+                            <p id="B" class="my-auto h1">x</p>
+                        </div>
+                        <div class="celda border border-dark">
+                            <p id="B" class="my-auto h1">x</p>
+                        </div>
+                        <div class="celda border border-dark border-bottom-0">
+                            <p id="B" class="my-auto h1">x</p>
+                        </div>
+                    </div>
+                    <div class="col-4 text-center p-0">
+                        <div class="celda border border-dark border-top-0 border-right-0">
+                            <p id="C1" class="my-auto h1">x</p>
+                        </div>
+                        <div class="celda border border-dark border-right-0">
+                            <p id="C2" class="my-auto h1">x</p>
+                        </div>
+                        <div class="celda border border-dark border-bottom-0 border-right-0">
+                            <p id="C3" class="my-auto h1">x</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="alert alert-info ml-auto " role="alert">
+                ¡Esperando al otro jugador!
+            </div>
+        </div>
+
+    </div>
+
+    <script src="public/js/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+        crossorigin="anonymous"></script>
+    <script src="public/js/bootstrap.min.js"></script>
+</body>
+
+</html>
