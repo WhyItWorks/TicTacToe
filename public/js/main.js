@@ -44,8 +44,8 @@ $(document).ready(function () {
     function drawPlay(playData) {
         playlist[playData.index] = playData.symbol;
 
-        $(this).children('p').eq(playData.index).text(playData.symbol);
-
+        $('.cell').children('p').eq(playData.index).text(playData.symbol);
+        console.log($(this).children('p'))
         //Se declara una variable de coordinadas para guardar el índice, dentro del arreglo, de la jugada
         coordinates = getPlayCoordinates(playData.index);
         //Llama a la función logPlay para indicar el símbolo jugado en la coordinada indicada
