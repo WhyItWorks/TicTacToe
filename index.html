@@ -1,0 +1,140 @@
+<!doctype html>
+<html>
+<head>
+    <title>Socket.IO chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font: 20px Helvetica, Arial;
+        }
+
+        #tic-tac-toe {
+            border-collapse: collapse;
+            padding: 0;
+        }
+
+        #tic-tac-toe td {
+            display: inline-block;
+            height: 100px;
+            width: 100px;
+            border: 2px solid black;
+            text-align: center;
+            padding-top: 40px;
+        }
+    </style>
+</head>
+<body>
+<div id="wrapper">
+    <table id="tic-tac-toe">
+        <tr>
+            <td class="square"></td>
+            <td class="square"></td>
+            <td class="square"></td>
+        </tr>
+        <tr>
+            <td class="square"></td>
+            <td class="square"></td>
+            <td class="square"></td>
+        </tr>
+        <tr>
+            <td class="square"></td>
+            <td class="square"></td>
+            <td class="square"></td>
+        </tr>
+    </table>
+    <div id="play-log"></div>
+</div>
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+<script>
+    $(function () {
+        var socket = io();
+        var mySymbol = '@';
+        var playlist = new Array(9);
+        var onThePlay = false;
+
+        socket.on('play', function (message) {
+            try {
+                var playData = JSON.parse(message);
+                if (playData.symbol !== mySymbol) {
+                   onThePlay = true;
+                }
+                drawPlay(playData);
+            } catch (e) {
+                logPlay('Vaya, algo ha fallado, por favor recarga la pagina');
+                console.log(e.message);
+            }
+        });
+
+        socket.on('symbol', function (message) {
+            mySymbol = message;
+            logPlay('Te han asignado el simbolo: [' + mySymbol + ']');
+
+            if (mySymbol === 'O') {
+                onThePlay = true;
+                logPlay('Tu juegas primero')
+            } else {
+                logPlay('Tu juegas segundo')
+            }
+        });
+
+        socket.on('finish', function (message) {
+            onThePlay == false;
+        });
+
+        $('.square').on('click', function (e) {
+            var index = $('#tic-tac-toe td').index(this);
+            var playData = play(index);
+
+            if(!onThePlay) {
+                logPlay('Debes esperar tu turno para jugar');
+                return;
+            }
+
+            if (playData.index === index) {
+                socket.emit('play', JSON.stringify(playData));
+                onThePlay = false;
+            }
+        });
+
+        function drawPlay(playData) {
+            playlist[playData.index] = playData.symbol;
+            $('#tic-tac-toe td').eq(playData.index).text(playData.symbol);
+            var coordinates = getPlayCoordinates(playData.index);
+            logPlay('player [' + playData.symbol + '] play: [' + coordinates.x + '][' + coordinates.y + ']');
+            console.log(playlist);
+        }
+
+        function play(index) {
+            if (typeof playlist[index] !== 'undefined') {
+                logPlay('Celda ocupada por una jugada anterior');
+                return {};
+            }
+            console.log('index: ' + index);
+            var coordinates = getPlayCoordinates(index);
+            console.log('play position: [' + coordinates.x + '][' + coordinates.y + ']');
+            return {
+                symbol: mySymbol,
+                index: index
+            };
+        }
+
+        function logPlay(message) {
+            var playLog = $('#play-log');
+            playLog.html(playLog.html() + '<br/>' + message);
+        }
+
+        function getPlayCoordinates(index) {
+            var x = Math.floor((index) / 3) + 1;
+            var y = index - (x - 1) * 3 + 1;
+            return {x: x, y: y};
+        }
+    });
+</script>
+</body>
+</html>
