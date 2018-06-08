@@ -11,21 +11,18 @@ $(document).ready(function () {
     });
 
 
-
     //Socket
     var socket = io();
-    var playlist = new Array(9);
-    var coordinates = null;
-    var index = null;
+    var playlist = new Array(9); //Tablero 
+    var coordinates = null; //Coordenadas de juego
+    var index = null; //Indice donde se realizó la marca
+    var onThePlay = false; //Turno activo -> Evitar doble turno 
 
     socket.on('symbol', function (msg) {
         $Marca = msg;
         $('#marca').text($Marca)
         if ($Marca === 'O') {
             onThePlay = true;
-
-        } else {
-
         }
     })
 
@@ -45,17 +42,8 @@ $(document).ready(function () {
         playlist[playData.index] = playData.symbol;
 
         $('.cell').children('p').eq(playData.index).text(playData.symbol);
-        console.log($(this).children('p'))
-        //Se declara una variable de coordinadas para guardar el índice, dentro del arreglo, de la jugada
         coordinates = getPlayCoordinates(playData.index);
-        //Llama a la función logPlay para indicar el símbolo jugado en la coordinada indicada
-        // logPlay('player [' + playData.symbol + '] play: [' + coordinates.x + '][' + coordinates.y + ']');
     }
-
-    // function logPlay(message) {
-    //     var playLog = $('#play-log');
-    //     // playLog.html(playLog.html() + '<br/>' + message);
-    // }
 
     function getPlayCoordinates(index) {
         var x = Math.floor((index) / 3) + 1;
@@ -68,11 +56,7 @@ $(document).ready(function () {
     }
 
     function play(index) {
-        //Condición para validar si una celda está ocupada por una jugada anterior
-        console.log('index: ' + index);
-        //Se declara una variable para guardar un índice
         coordinates = getPlayCoordinates(index);
-        console.log('play position: [' + coordinates.x + '][' + coordinates.y + ']');
         return {
             symbol: $Marca,
             index: index
@@ -92,26 +76,46 @@ $(document).ready(function () {
         $Correcto = true;
         $CellP = $(this).children('p');
 
+
         $Correcto = evitarSobreescritura($CellP);
 
         if ($Correcto) {
-            $CellP.text($Marca);
 
-            index = $('.cell').index(this);
+            if (onThePlay) {
 
-            var playData = play(index);
+                $CellP.text($Marca);
 
-            if (playData.index === index) {
-                socket.emit('play', JSON.stringify(playData));
+                index = $('.cell').index(this);
+                var playData = play(index);
+
+                if (playData.index === index) {
+                    socket.emit('play', JSON.stringify(playData));
+                    onThePlay = false;
+                }
+            } else {
+                message = "¡Esperando al otro jugador!";
+                Alert('.alert-info', message);
             }
         }
+    });
 
 
 
-
-
+    socket.on('redirect', function (destination) {
+        // message = "El otro jugador se ha desconectado";
+        // Alert('.alert-danger', message)
+        window.location.href = destination;
 
     });
+
+    function Alert(__class, mensaje) {
+
+        $Alert = $(__class);
+        $Alert.text(message).show(0).effect("shake").delay(500).queue(function (next) {
+            $Alert.hide(0);
+            next();
+        });
+    }
 
 
 });
