@@ -7,7 +7,7 @@ var io = require('socket.io')(http);
 var port = process.env.PORT || 9100;
 var maxUsers = 2;
 var currentUsers = 0;
-var symbols = ['X', 'O'];
+var symbols = ['O', 'X'];
 var playlist = new Array(9);
 
 var room = 0;
@@ -22,23 +22,24 @@ app.get('/game', function (req, res) {
 app.use('/public', express.static(__dirname + '/public'));
 
 
+playerIDArray = new Array(2);
 io.on('connection', function (socket) {
 
     console.log('user connected')
 
     if (currentUsers % 2 == 0) {
         socket.join('room-' + ++room);
+        playerIDArray = []
         currentUsers = 0;
-
     } else {
         socket.join('room-' + room);
     }
-
+    playerIDArray.push(socket.id)
 
     console.log('actualRoom:' + room + ' - Current users:' + currentUsers);
 
     // if (currentUsers <= maxUsers) {
-    socket.emit('symbol', symbols[currentUsers]);
+    socket.emit('symbol', symbols[currentUsers], playerIDArray);
     console.log('Assigning symbol: [' + symbols[currentUsers] + '] to player')
     currentUsers++;
 
@@ -48,7 +49,6 @@ io.on('connection', function (socket) {
         io.emit('redirect', '/');
         console.log('user disconnected');
     });
-
 
     socket.on('play', function (msg) {
         console.log(msg);

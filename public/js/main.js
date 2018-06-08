@@ -18,12 +18,100 @@ $(document).ready(function () {
     var index = null; //Indice donde se realizó la marca
     var onThePlay = false; //Turno activo -> Evitar doble turno 
 
-    socket.on('symbol', function (msg) {
+    winnersArray = new Array();
+    player1Plays = new Array();
+    player2Plays = new Array();
+    playSize = 3;
+    playerPlays = new Array();
+    player1ID = null;
+    player2ID = null;
+    jugadorActual = null;
+
+    gameWinner = false;
+
+    function cargaSoluciones() {
+        winnersArray.push([0, 1, 2]);
+        winnersArray.push([3, 4, 5]);
+        winnersArray.push([6, 7, 8]);
+        winnersArray.push([0, 3, 6]);
+        winnersArray.push([1, 4, 7]);
+        winnersArray.push([2, 5, 8]);
+        winnersArray.push([0, 4, 8]);
+        winnersArray.push([6, 4, 2]);
+    }
+
+
+    function revisarGanador() {
+
+        if (player1ID % 2 != 0) {
+            playerPlays = player1Plays;
+        } else if (player2ID % 2 == 0) {
+            playerPlays = player2Plays;
+        }
+
+        if (!jugadorActual) {
+            playerPlays = player1Plays;
+        } else {
+            playerPlays = player2Plays;
+        }
+
+        if (playerPlays.length >= playSize) {
+            for (var i = 0; i < winnersArray.length; i++) {
+                var findWinnerSet = winnersArray[i];
+                var winnerSetFound = true;
+
+                for (var j = 0; j < winnersArray.length; j++) {
+                    var foundWinner = false;
+
+                    for (var k = 0; k < playerPlays.length; k++) {
+                        if (findWinnerSet[j] == playerPlays[k]) {
+                            foundWinner = true;
+                            break;
+                        }
+                    }
+
+                    if (foundWinner == false) {
+                        winnerSetFound = false;
+                        break;
+                    }
+                }
+
+                if (winnerSetFound == true) {
+                    gameWinner = true;
+                    break;
+                }
+            }
+        }
+
+        return gameWinner;
+    }
+
+
+
+
+    socket.on('symbol', function (msg, idArray) {
         $Marca = msg;
         $('#marca').text($Marca)
+
+        player1ID = idArray[0].slice(idArray[0].length - 1);
+        player1ID = player1ID.charCodeAt(0);
+
+        if (idArray[1] != null) {
+            player2ID = idArray[1].slice(idArray[1].length - 1);
+            player2ID = player2ID.charCodeAt(0);
+        }
+
+        if ($Marca == 'O') {
+            jugadorActual = player1ID;
+        } else {
+            jugadorActual = player2ID;
+        }
+
+
         if ($Marca === 'O') {
             onThePlay = true;
         }
+
     })
 
     socket.on('play', function (msg) {
@@ -39,7 +127,12 @@ $(document).ready(function () {
     });
 
     function drawPlay(playData) {
+        console.log(playData)
         playlist[playData.index] = playData.symbol;
+
+        indexArray = playData.index
+
+        playerPlays.push(indexArray);
 
         $('.cell').children('p').eq(playData.index).text(playData.symbol);
         coordinates = getPlayCoordinates(playData.index);
@@ -71,11 +164,14 @@ $(document).ready(function () {
         }
     }
 
-
     $('.cell').click(function (e) {
+
+        console.log(player1ID + '--' + player2ID)
+        //Problema 
+        // if (player1ID != null && player2ID != null) {
+
         $Correcto = true;
         $CellP = $(this).children('p');
-
 
         $Correcto = evitarSobreescritura($CellP);
 
@@ -83,27 +179,32 @@ $(document).ready(function () {
 
             if (onThePlay) {
 
+
                 $CellP.text($Marca);
 
                 index = $('.cell').index(this);
+
                 var playData = play(index);
 
                 if (playData.index === index) {
                     socket.emit('play', JSON.stringify(playData));
                     onThePlay = false;
+
                 }
             } else {
                 message = "¡Esperando al otro jugador!";
                 Alert('.alert-info', message);
             }
         }
+
+        revisarGanador();
+        cargaSoluciones();
+
+        // }
     });
 
 
-
     socket.on('redirect', function (destination) {
-        // message = "El otro jugador se ha desconectado";
-        // Alert('.alert-danger', message)
         window.location.href = destination;
 
     });
@@ -116,6 +217,5 @@ $(document).ready(function () {
             next();
         });
     }
-
 
 });
