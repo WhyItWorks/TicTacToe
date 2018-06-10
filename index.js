@@ -6,7 +6,7 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var port = process.env.PORT || 9100;
 var maxUsers = 2;
-var currentUsers = 0;
+var currentUsers = 1;
 var symbols = ['O', 'X'];
 var playlist = new Array(9);
 
@@ -25,29 +25,35 @@ app.use('/public', express.static(__dirname + '/public'));
 playerIDArray = new Array(2);
 io.on('connection', function (socket) {
 
-    console.log('user connected')
 
-    if (currentUsers % 2 == 0) {
+    //Si el numero de usuarios activos (currentUsers) sin room es 1, crea una nueva room
+    if (currentUsers % 2 != 0) {
         socket.join('room-' + ++room);
-        playerIDArray = []
-        currentUsers = 0;
+        playerIDArray = [];
+        currentUsers = 1;                
     } else {
-        socket.join('room-' + room);
+        // Si el numero de usuarios activos (currentUsers) sin room es 2, se une a una room donde esté solo 1 usuario
+        socket.join('room-' + room);                
     }
-    playerIDArray.push(socket.id)
 
-    console.log('actualRoom:' + room + ' - Current users:' + currentUsers);
+    console.log('user connected to room: ' + room);
 
-    // if (currentUsers <= maxUsers) {
-    socket.emit('symbol', symbols[currentUsers], playerIDArray);
-    console.log('Assigning symbol: [' + symbols[currentUsers] + '] to player')
+    
+    console.log('actualRoom: ' + room + ' - Current users: ' + currentUsers);
+    
+    
+    playerIDArray.push(socket.id);  // <- Este array contiene la información obtenida hasta el momento    
+    socket.emit('symbol', symbols[currentUsers - 1], playerIDArray);
+
+    console.log('Assigning symbol: [' + symbols[currentUsers - 1] + '] to player');
     currentUsers++;
 
-    // }
 
     socket.on('disconnect', function () {
         io.emit('redirect', '/');
-        console.log('user disconnected');
+        console.log('user disconnected to room: ' + room);
+        //Si un usuario se desconecta, la room queda inutilizable (para evitar que al recargar la pagina, se cree un jugador X solitario)
+        currentUsers = 1;
     });
 
     socket.on('play', function (msg) {

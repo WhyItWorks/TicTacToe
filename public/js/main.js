@@ -11,6 +11,8 @@ $(document).ready(function () {
     });
 
 
+
+
     //Socket
     var socket = io();
     var playlist = new Array(9); //Tablero 
@@ -49,6 +51,7 @@ $(document).ready(function () {
             playerPlays = player2Plays;
         }
 
+
         if (!jugadorActual) {
             playerPlays = player1Plays;
         } else {
@@ -86,9 +89,6 @@ $(document).ready(function () {
         return gameWinner;
     }
 
-
-
-
     socket.on('symbol', function (msg, idArray) {
         $Marca = msg;
         $('#marca').text($Marca)
@@ -96,10 +96,16 @@ $(document).ready(function () {
         player1ID = idArray[0].slice(idArray[0].length - 1);
         player1ID = player1ID.charCodeAt(0);
 
+        //PROBLEMA !!
+        //Solo envía los datos una vez por conexión 
+        //Al usuario 1, solo le envía la información que existe hasta ese momento (id usuario 1)
+        //Al usuario 2, le envía toda la infomación
         if (idArray[1] != null) {
             player2ID = idArray[1].slice(idArray[1].length - 1);
             player2ID = player2ID.charCodeAt(0);
         }
+
+        console.log(player1ID + '--' + player2ID);
 
         if ($Marca == 'O') {
             jugadorActual = player1ID;
@@ -164,11 +170,7 @@ $(document).ready(function () {
         }
     }
 
-    $('.cell').click(function (e) {
-
-        console.log(player1ID + '--' + player2ID)
-        //Problema 
-        // if (player1ID != null && player2ID != null) {
+    $('.cell').click(function (e) {         
 
         $Correcto = true;
         $CellP = $(this).children('p');
@@ -198,9 +200,7 @@ $(document).ready(function () {
         }
 
         revisarGanador();
-        cargaSoluciones();
-
-        // }
+        cargaSoluciones();        
     });
 
 
