@@ -54,11 +54,10 @@ io.on('connection', function (socket) {
         console.log(msg);
         io.emit('play', msg);
         var playData = JSON.parse(msg);
+
         playlist[playData.index] = playData.symbol;
     });
 });
-
-
 
 http.listen(port, function () {
     console.log('listening on *:' + port);
