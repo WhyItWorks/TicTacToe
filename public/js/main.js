@@ -19,100 +19,105 @@ $(document).ready(function () {
     var coordinates = null; //Coordenadas de juego
     var index = null; //Indice donde se realizó la marca
     var onThePlay = false; //Turno activo -> Evitar doble turno 
-
-    winnersArray = new Array();
+    winnersArray = new Array(); // Arreglo que contiene todas las jugadas ganadoras
     player1Plays = new Array();
     player2Plays = new Array();
     playSize = 3;
+
     playerPlays = new Array();
     player1ID = null;
     player2ID = null;
     jugadorActual = null;
 
     gameWinner = false;
-
-    function cargaSoluciones() {
-        winnersArray.push([0, 1, 2]);
-        winnersArray.push([3, 4, 5]);
-        winnersArray.push([6, 7, 8]);
-        winnersArray.push([0, 3, 6]);
-        winnersArray.push([1, 4, 7]);
-        winnersArray.push([2, 5, 8]);
-        winnersArray.push([0, 4, 8]);
-        winnersArray.push([6, 4, 2]);
-    }
+    myPlayData = new Array();
+    var turn = 0;
+  
 
 
-    function revisarGanador() {
 
-        if (player1ID % 2 != 0) {
-            playerPlays = player1Plays;
-        } else if (player2ID % 2 == 0) {
-            playerPlays = player2Plays;
+    var arr = new Array(3)
+    var checkResult = function () {
+        for (i = 0; i < 3; i++) {
+            arr[i] = new Array(3)
         }
+        console.log(arr);
+
+        $(".tr").each(function (i, val) {
+            $(this).find('p').each(function (j, val2) {
+                arr[i][j] = parseInt($(this).attr("data-points"));
+            });
+        });
 
 
-        if (!jugadorActual) {
-            playerPlays = player1Plays;
-        } else {
-            playerPlays = player2Plays;
-        }
-
-        if (playerPlays.length >= playSize) {
-            for (var i = 0; i < winnersArray.length; i++) {
-                var findWinnerSet = winnersArray[i];
-                var winnerSetFound = true;
-
-                for (var j = 0; j < winnersArray.length; j++) {
-                    var foundWinner = false;
-
-                    for (var k = 0; k < playerPlays.length; k++) {
-                        if (findWinnerSet[j] == playerPlays[k]) {
-                            foundWinner = true;
-                            break;
-                        }
-                    }
-
-                    if (foundWinner == false) {
-                        winnerSetFound = false;
-                        break;
-                    }
-                }
-
-                if (winnerSetFound == true) {
-                    gameWinner = true;
-                    break;
-                }
+        for (var i = 0; i < 3; i++) {
+            var rowSum = 0;
+            for (var j = 0; j < 3; j++) {
+                rowSum += arr[i][j];
+            }
+            if (rowSum === 3) {
+                $('#message').text('Ganador: O')
+                $('#resulMessageModal').modal('toggle');
+            } else if (rowSum === -3) {
+                $('#message').text('Ganador: X')
+                $('#resulMessageModal').modal('toggle');
             }
         }
 
-        return gameWinner;
-    }
+        for (var i = 0; i < 3; i++) {
+            var colSum = 0;
+            for (var j = 0; j < 3; j++) {
+                colSum += arr[j][i];
+            }
+            if (colSum === 3) {
+                $('#message').text('Ganador: O')
+                $('#resulMessageModal').modal('toggle');
+            } else if (colSum === -3) {
+                $('#message').text('Ganador: X')
+                $('#resulMessageModal').modal('toggle');
+            }
+        }
 
-    socket.on('symbol', function (msg, idArray) {
+        if (arr[0][0] + arr[1][1] + arr[2][2] === 3) {
+            $('#message').text('Ganador: O')
+            $('#resulMessageModal').modal('toggle');
+        } else if (arr[0][0] + arr[1][1] + arr[2][2] === -3) {
+            $('#message').text('Ganador: X')
+            $('#resulMessageModal').modal('toggle');
+        }
+
+        if (arr[2][0] + arr[1][1] + arr[0][2] === 3) {
+            $('#message').text('Ganador: O')
+            $('#resulMessageModal').modal('toggle');
+        } else if (arr[2][0] + arr[1][1] + arr[0][2] === -3) {
+            $('#message').text('Ganador: X')
+            $('#resulMessageModal').modal('toggle');
+        }
+
+    };
+
+
+
+
+
+
+    socket.on('symbol', function (msg, idArray, room) {
+
+        $CurrentRoom = room;
         $Marca = msg;
+
+        console.log('CurrentRoom: ' + $CurrentRoom)
         $('#marca').text($Marca)
 
         player1ID = idArray[0].slice(idArray[0].length - 1);
         player1ID = player1ID.charCodeAt(0);
 
-        //PROBLEMA !!
-        //Solo envía los datos una vez por conexión 
-        //Al usuario 1, solo le envía la información que existe hasta ese momento (id usuario 1)
-        //Al usuario 2, le envía toda la infomación
         if (idArray[1] != null) {
             player2ID = idArray[1].slice(idArray[1].length - 1);
             player2ID = player2ID.charCodeAt(0);
         }
 
         console.log(player1ID + '--' + player2ID);
-
-        if ($Marca == 'O') {
-            jugadorActual = player1ID;
-        } else {
-            jugadorActual = player2ID;
-        }
-
 
         if ($Marca === 'O') {
             onThePlay = true;
@@ -132,16 +137,15 @@ $(document).ready(function () {
         }
     });
 
+
+
     function drawPlay(playData) {
-        console.log(playData)
         playlist[playData.index] = playData.symbol;
-
-        indexArray = playData.index
-
-        playerPlays.push(indexArray);
-
         $('.cell').children('p').eq(playData.index).text(playData.symbol);
         coordinates = getPlayCoordinates(playData.index);
+
+
+
     }
 
     function getPlayCoordinates(index) {
@@ -162,7 +166,7 @@ $(document).ready(function () {
         };
     }
 
-    function evitarSobreescritura(Cell) {
+    function avoidOverwriting(Cell) {
         if ($CellP.text() === "") {
             return true;
         } else {
@@ -170,28 +174,34 @@ $(document).ready(function () {
         }
     }
 
-    $('.cell').click(function (e) {         
+    $('.cell').click(function (e) {
 
-        $Correcto = true;
         $CellP = $(this).children('p');
 
-        $Correcto = evitarSobreescritura($CellP);
+
+        if ($Marca == 'O') {
+            $CellP.attr("data-points", 1);
+            turn = 1;
+        } else {
+            $CellP.attr("data-points", -1);
+            turn = 0;
+        }
+        checkResult();
+
+
+        $Correcto = avoidOverwriting($CellP);
 
         if ($Correcto) {
-
             if (onThePlay) {
 
-
                 $CellP.text($Marca);
-
                 index = $('.cell').index(this);
-
-                var playData = play(index);
+                playData = play(index);
 
                 if (playData.index === index) {
                     socket.emit('play', JSON.stringify(playData));
+                    drawPlay(playData);
                     onThePlay = false;
-
                 }
             } else {
                 message = "¡Esperando al otro jugador!";
@@ -199,13 +209,18 @@ $(document).ready(function () {
             }
         }
 
-        revisarGanador();
-        cargaSoluciones();        
     });
 
 
-    socket.on('redirect', function (destination) {
-        window.location.href = destination;
+    socket.on('redirect', function (destination, room) {
+
+        console.log(room + '--' + $CurrentRoom);
+
+        if (room == $CurrentRoom) {
+            window.location.href = destination;
+        }
+
+
 
     });
 
@@ -217,5 +232,6 @@ $(document).ready(function () {
             next();
         });
     }
+
 
 });

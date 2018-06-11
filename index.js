@@ -5,11 +5,9 @@ var path = require('path');
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var port = process.env.PORT || 9100;
-var maxUsers = 2;
 var currentUsers = 1;
 var symbols = ['O', 'X'];
 var playlist = new Array(9);
-
 var room = 0;
 
 app.get('/', function (req, res) {
@@ -30,28 +28,29 @@ io.on('connection', function (socket) {
     if (currentUsers % 2 != 0) {
         socket.join('room-' + ++room);
         playerIDArray = [];
-        currentUsers = 1;                
+        currentUsers = 1;
     } else {
         // Si el numero de usuarios activos (currentUsers) sin room es 2, se une a una room donde esté solo 1 usuario
-        socket.join('room-' + room);                
+        socket.join('room-' + room);
     }
 
-    console.log('user connected to room: ' + room);
+    var CurrentRoom = 'room-' + room;
 
-    
-    console.log('actualRoom: ' + room + ' - Current users: ' + currentUsers);
-    
-    
-    playerIDArray.push(socket.id);  // <- Este array contiene la información obtenida hasta el momento    
-    socket.emit('symbol', symbols[currentUsers - 1], playerIDArray);
+    playerIDArray.push(socket.id); // <- Este array contiene la información obtenida hasta el momento    
+    socket.emit('symbol', symbols[currentUsers - 1], playerIDArray, CurrentRoom);
 
-    console.log('Assigning symbol: [' + symbols[currentUsers - 1] + '] to player');
+    console.log('Se ha conectado un usuario en la room: room-' + room);
+    console.log('Room actual: ' + CurrentRoom + ' - Cantidad de usuarios: ' + currentUsers);
+    console.log('Asignando un simbolo: [' + symbols[currentUsers - 1] + ']');
+
     currentUsers++;
 
 
     socket.on('disconnect', function () {
-        io.emit('redirect', '/');
-        console.log('user disconnected to room: ' + room);
+        io.emit('redirect', '/', CurrentRoom);
+        socket.leave(CurrentRoom);
+        console.log('Se ha desconectado un usuario en la room: room-' + CurrentRoom);
+
         //Si un usuario se desconecta, la room queda inutilizable (para evitar que al recargar la pagina, se cree un jugador X solitario)
         currentUsers = 1;
     });
@@ -66,5 +65,5 @@ io.on('connection', function (socket) {
 });
 
 http.listen(port, function () {
-    console.log('listening on *:' + port);
+    console.log('Escuchando el puerto : ' + port);
 });
