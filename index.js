@@ -5,11 +5,9 @@ var path = require('path');
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var port = process.env.PORT || 9100;
-var maxUsers = 2;
-var currentUsers = 0;
+var currentUsers = 1;
 var symbols = ['O', 'X'];
 var playlist = new Array(9);
-
 var room = 0;
 
 app.get('/', function (req, res) {
@@ -25,29 +23,36 @@ app.use('/public', express.static(__dirname + '/public'));
 playerIDArray = new Array(2);
 io.on('connection', function (socket) {
 
-    console.log('user connected')
 
-    if (currentUsers % 2 == 0) {
+    //Si el numero de usuarios activos (currentUsers) sin room es 1, crea una nueva room
+    if (currentUsers % 2 != 0) {
         socket.join('room-' + ++room);
-        playerIDArray = []
-        currentUsers = 0;
+        playerIDArray = [];
+        currentUsers = 1;
     } else {
+        // Si el numero de usuarios activos (currentUsers) sin room es 2, se une a una room donde esté solo 1 usuario
         socket.join('room-' + room);
     }
-    playerIDArray.push(socket.id)
 
-    console.log('actualRoom:' + room + ' - Current users:' + currentUsers);
+    var CurrentRoom = 'room-' + room;
 
-    // if (currentUsers <= maxUsers) {
-    socket.emit('symbol', symbols[currentUsers], playerIDArray);
-    console.log('Assigning symbol: [' + symbols[currentUsers] + '] to player')
+    playerIDArray.push(socket.id); // <- Este array contiene la información obtenida hasta el momento    
+    socket.emit('symbol', symbols[currentUsers - 1], playerIDArray, CurrentRoom);
+
+    console.log('Se ha conectado un usuario en la room: room-' + room);
+    console.log('Room actual: ' + CurrentRoom + ' - Cantidad de usuarios: ' + currentUsers);
+    console.log('Asignando un simbolo: [' + symbols[currentUsers - 1] + ']');
+
     currentUsers++;
 
-    // }
 
     socket.on('disconnect', function () {
-        io.emit('redirect', '/');
-        console.log('user disconnected');
+        io.emit('redirect', '/', CurrentRoom);
+        socket.leave(CurrentRoom);
+        console.log('Se ha desconectado un usuario en la room: room-' + CurrentRoom);
+
+        //Si un usuario se desconecta, la room queda inutilizable (para evitar que al recargar la pagina, se cree un jugador X solitario)
+        currentUsers = 1;
     });
 
     socket.on('play', function (msg) {
@@ -60,5 +65,5 @@ io.on('connection', function (socket) {
 });
 
 http.listen(port, function () {
-    console.log('listening on *:' + port);
+    console.log('Escuchando el puerto : ' + port);
 });
